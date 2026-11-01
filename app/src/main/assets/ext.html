@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Extensiones</title>
+<style>
+body{margin:0;padding:16px;background:#0b0d12;color:#fff;font-family:system-ui,sans-serif}
+h2{margin:6px 0 14px}
+input,select,textarea,button{width:100%;box-sizing:border-box;background:#1b1f2a;color:#fff;border:1px solid #333b4d;border-radius:12px;padding:12px;font-size:15px;margin-bottom:8px}
+textarea{height:140px;font-family:monospace;font-size:13px}
+button{width:auto;margin-right:6px}
+.card{background:#151925;border:1px solid #2a3144;border-radius:14px;padding:12px;margin-bottom:10px}
+.card small{opacity:.7;display:block;margin:4px 0 8px;word-break:break-all}
+.acc{background:#5b8cff;border:0}
+</style></head><body>
+<button onclick="location.href='index.html'">← Volver</button>
+<h2>🧩 Extensiones</h2>
+<div id="list"></div>
+<h3>Nueva extensión</h3>
+<input id="n" placeholder="Nombre">
+<input id="m" placeholder="Sitio (ej. youtube.com, o * para todos)" value="*">
+<select id="t"><option value="css">Estilo (CSS)</option><option value="js">Script (JavaScript)</option></select>
+<textarea id="c" placeholder="Pega aquí el código"></textarea>
+<div>
+<button class="acc" onclick="add()">Guardar</button>
+<button onclick="tpl(0)">Plantilla: modo oscuro</button>
+<button onclick="tpl(1)">Plantilla: sin anuncios</button>
+</div>
+<script>
+var L=[];
+function $(i){return document.getElementById(i)}
+function load(){try{L=JSON.parse(window.Android?Android.getExt():(localStorage.getItem('ext')||'[]'))}catch(e){L=[]}}
+function save(){var s=JSON.stringify(L);try{if(window.Android)Android.setExt(s);else localStorage.setItem('ext',s)}catch(e){}}
+function draw(){
+  var d=$('list');d.innerHTML='';
+  if(!L.length){d.textContent='Aún no tienes extensiones.'}
+  L.forEach(function(x,i){
+    var c=document.createElement('div');c.className='card';
+    var b=document.createElement('b');b.textContent=x.name+' ('+x.type.toUpperCase()+')';
+    var s=document.createElement('small');s.textContent='Sitio: '+x.match;
+    var a=document.createElement('button');a.textContent=x.on?'Activada ✔':'Desactivada';
+    a.onclick=function(){x.on=!x.on;save();draw()};
+    var r=document.createElement('button');r.textContent='Borrar';
+    r.onclick=function(){L.splice(i,1);save();draw()};
+    c.append(b,s,a,r);d.append(c);
+  });
+}
+function add(){
+  var n=$('n').value.trim(),m=$('m').value.trim()||'*',t=$('t').value,c=$('c').value;
+  if(!n||!c.trim()){alert('Pon un nombre y el código');return}
+  L.push({name:n,match:m,type:t,code:c,on:true});
+  save();draw();$('n').value='';$('c').value='';
+}
+function tpl(k){
+  if(k==0){$('n').value='Modo oscuro';$('m').value='*';$('t').value='css';
+    $('c').value='html{filter:invert(1) hue-rotate(180deg)}img,video,canvas{filter:invert(1) hue-rotate(180deg)}'}
+  else{$('n').value='Sin anuncios';$('m').value='*';$('t').value='css';
+    $('c').value='ins.adsbygoogle,[id^="google_ads"],[class*="advert"],iframe[src*="doubleclick"],iframe[src*="/ads"]{display:none!important}'}
+}
+load();draw();
+</script>
+</body></html>

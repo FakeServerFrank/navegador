@@ -1,66 +1,110 @@
 package com.example.navegador
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.AlertDialog
+import android.net.Uri
 import android.os.Bundle
-import android.view.View
-import android.view.inputmethod.EditorInfo
 import android.webkit.*
-import android.widget.*
+import android.widget.EditText
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var web: WebView
-    private lateinit var barra: EditText
-    private lateinit var progreso: ProgressBar
+    private var callback: ValueCallback<Array<Uri>>? = null
+
+    private val picker = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { r ->
+        val data = r.data
+        val res: Array<Uri>? = if (r.resultCode == Activity.RESULT_OK && data != null) {
+            val clip = data.clipData
+            when {
+                clip != null -> Array(clip.itemCount) { clip.getItemAt(it).uri }
+                data.data != null -> arrayOf(data.data!!)
+                else -> null
+            }
+        } else null
+        callback?.onReceiveValue(res)
+        callback = null
+    }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val raiz = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        val fila = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-
-        val atras = Button(this).apply { text = "◀" }
-        val adelante = Button(this).apply { text = "▶" }
-        val recargar = Button(this).apply { text = "⟳" }
-        barra = EditText(this).apply {
-            hint = "Buscar o escribir URL"
-            setSingleLine()
-            imeOptions = EditorInfo.IME_ACTION_GO
-        }
-        progreso = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal)
         web = WebView(this)
+        web.setBackgroundColor(0xFF0B0D12.toInt())
+        setContentView(web)
 
-        fila.addView(atras)
-        fila.addView(adelante)
-        fila.addView(barra, LinearLayout.LayoutParams(0, -2, 1f))
-        fila.addView(recargar)
-        raiz.addView(fila)
-        raiz.addView(progreso, LinearLayout.LayoutParams(-1, 8))
-        raiz.addView(web, LinearLayout.LayoutParams(-1, 0, 1f))
-        setContentView(raiz)
+        ViewCompat.setOnApplyWindowInsetsListener(web) { v, insets ->
+            val b = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(b.left, b.top, b.right, b.bottom)
+            insets
+        }
 
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
-        web.webViewClient = object : WebViewClient() {
-            override fun onPageFinished(view: WebView, url: String) {
-                barra.setText(url)
-            }
-        }
-        web.webChromeClient = object : WebChromeClient() {
-            override fun onProgressChanged(view: WebView, p: Int) {
-                progreso.progress = p
-                progreso.visibility = if (p < 100) View.VISIBLE else View.GONE
-            }
-        }
+        web.settings.mediaPlaybackRequiresUserGesture = false
+        web.webViewClient = WebViewClient()        web.webChromeClient = object : WebChromeClient() {
 
-        atras.setOnClickListener { if (web.canGoBack()) web.goBack() }
-        adelante.setOnClickListener { if (web.canGoForward()) web.goForward() }
-        recargar.setOnClickListener { web.reload() }
-        barra.setOnEditorActionListener { _, _, _ ->
-            cargar(barra.text.toString()); true
+            override fun onShowFileChooser(
+                view: WebView,
+                cb: ValueCallback<Array<Uri>>,
+                params: FileChooserParams
+            ): Boolean {
+                callback?.onReceiveValue(null)
+                callback = cb
+                return try {
+                    picker.launch(params.createIntent())
+                    true
+                } catch (e: Exception) {
+                    callback = null
+                    false
+                }
+            }
+
+            override fun onJsAlert(
+                view: WebView, url: String, message: String, result: JsResult
+            ): Boolean {
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(message)
+                    .setPositiveButton("OK") { _, _ -> result.confirm() }
+                    .setOnCancelListener { result.cancel() }
+                    .show()
+                return true
+            }
+
+            override fun onJsConfirm(
+                view: WebView, url: String, message: String, result: JsResult
+            ): Boolean {
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(message)
+                    .setPositiveButton("Sí") { _, _ -> result.confirm() }
+                    .setNegativeButton("No") { _, _ -> result.cancel() }
+                    .setOnCancelListener { result.cancel() }
+                    .show()
+                return true
+            }            override fun onJsPrompt(
+                view: WebView, url: String, message: String,
+                defaultValue: String?, result: JsPromptResult
+            ): Boolean {
+                val input = EditText(this@MainActivity)
+                input.setText(defaultValue ?: "")
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(message)
+                    .setView(input)
+                    .setPositiveButton("OK") { _, _ -> result.confirm(input.text.toString()) }
+                    .setNegativeButton("Cancelar") { _, _ -> result.cancel() }
+                    .setOnCancelListener { result.cancel() }
+                    .show()
+                return true
+            }
         }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -69,17 +113,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        web.loadUrl("https://www.google.com")
-    }
-
-    private fun cargar(texto: String) {
-        val t = texto.trim()
-        val destino = when {
-            t.startsWith("http") -> t
-            t.contains(".") && !t.contains(" ") -> "https://$t"
-            else -> "https://www.google.com/search?q=" +
-                java.net.URLEncoder.encode(t, "UTF-8")
-        }
-        web.loadUrl(destino)
+        web.loadUrl("file:///android_asset/index.html")
     }
 }

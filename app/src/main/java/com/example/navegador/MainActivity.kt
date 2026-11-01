@@ -12,6 +12,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import org.json.JSONArray
+import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
 
@@ -51,7 +53,64 @@ class MainActivity : AppCompatActivity() {
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
         web.settings.mediaPlaybackRequiresUserGesture = false
-        web.webViewClient = WebViewClient()
+        val prefs = getSharedPreferences("ext", MODE_PRIVATE)
+        var cur = ""
+
+        fun runExt(v: WebView, url: String) {
+            try {
+                val arr = JSONArray(prefs.getString("list", "[]"))
+                for (i in 0 until arr.length()) {
+                    val o = arr.getJSONObject(i)
+                    if (!o.optBoolean("on", true)) continue
+                    val m = o.optString("match", "*").trim()
+                    if (m != "*" && m.isNotEmpty() && !url.contains(m)) continue
+                    val code = o.optString("code")
+                    val js = if (o.optString("type") == "css")
+                        "(function(){var s=document.createElement('style');s.textContent=" +
+                            JSONObject.quote(code) +
+                            ";document.documentElement.appendChild(s)})()"
+                    else "(function(){try{\n$code\n}catch(e){}})()"
+                    v.evaluateJavascript(js, null)
+                }
+            } catch (e: Exception) {
+            }
+        }
+
+        web.addJavascriptInterface(object {
+            @JavascriptInterface
+            fun getExt(): String =
+                if (cur.startsWith("file:///android_asset"))
+                    prefs.getString("list", "[]") ?: "[]"
+                else "[]"
+
+            @JavascriptInterface
+            fun setExt(s: String) {
+                if (cur.startsWith("file:///android_asset"))
+                    prefs.edit().putString("list", s).apply()
+            }
+        }, "Android")
+
+        web.webViewClient = object : WebViewClient() {
+            override fun onPageStarted(
+                view: WebView, url: String, favicon: android.graphics.Bitmap?
+            ) {
+                cur = url
+            }
+
+            override fun onPageFinished(view: WebView, url: String) {
+                if (url.endsWith("android_asset/index.html")) {
+                    view.evaluateJavascript(
+                        "(function(){var b=document.createElement('button');" +
+                            "b.textContent='🧩 Extensiones';" +
+                            "b.onclick=function(){location.href='ext.html'};" +
+                            "document.getElementById('dock').appendChild(b)})()",
+                        null
+                    )
+                } else if (url.startsWith("http")) {
+                    runExt(view, url)
+                }
+            }
+        }
         web.webChromeClient = object : WebChromeClient() {
 
             override fun onShowFileChooser(
@@ -92,29 +151,3 @@ class MainActivity : AppCompatActivity() {
                     .show()
                 return true
             }
-            override fun onJsPrompt(
-                view: WebView, url: String, message: String,
-                defaultValue: String?, result: JsPromptResult
-            ): Boolean {
-                val input = EditText(this@MainActivity)
-                input.setText(defaultValue ?: "")
-                AlertDialog.Builder(this@MainActivity)
-                    .setMessage(message)
-                    .setView(input)
-                    .setPositiveButton("OK") { _, _ -> result.confirm(input.text.toString()) }
-                    .setNegativeButton("Cancelar") { _, _ -> result.cancel() }
-                    .setOnCancelListener { result.cancel() }
-                    .show()
-                return true
-            }
-        }
-
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (web.canGoBack()) web.goBack() else finish()
-            }
-        })
-
-        web.loadUrl("file:///android_asset/index.html")
-    }
-}

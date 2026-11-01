@@ -65,11 +65,13 @@ class MainActivity : AppCompatActivity() {
                     val m = o.optString("match", "*").trim()
                     if (m != "*" && m.isNotEmpty() && !url.contains(m)) continue
                     val code = o.optString("code")
-                    val js = if (o.optString("type") == "css")
+                    val js = if (o.optString("type") == "css") {
                         "(function(){var s=document.createElement('style');s.textContent=" +
                             JSONObject.quote(code) +
                             ";document.documentElement.appendChild(s)})()"
-                    else "(function(){try{\n$code\n}catch(e){}})()"
+                    } else {
+                        "(function(){try{\n" + code + "\n}catch(e){}})()"
+                    }
                     v.evaluateJavascript(js, null)
                 }
             } catch (e: Exception) {
@@ -78,10 +80,11 @@ class MainActivity : AppCompatActivity() {
 
         web.addJavascriptInterface(object {
             @JavascriptInterface
-            fun getExt(): String =
-                if (cur.startsWith("file:///android_asset"))
+            fun getExt(): String {
+                return if (cur.startsWith("file:///android_asset"))
                     prefs.getString("list", "[]") ?: "[]"
                 else "[]"
+            }
 
             @JavascriptInterface
             fun setExt(s: String) {
@@ -89,7 +92,6 @@ class MainActivity : AppCompatActivity() {
                     prefs.edit().putString("list", s).apply()
             }
         }, "Android")
-
         web.webViewClient = object : WebViewClient() {
             override fun onPageStarted(
                 view: WebView, url: String, favicon: android.graphics.Bitmap?
@@ -151,3 +153,29 @@ class MainActivity : AppCompatActivity() {
                     .show()
                 return true
             }
+            override fun onJsPrompt(
+                view: WebView, url: String, message: String,
+                defaultValue: String?, result: JsPromptResult
+            ): Boolean {
+                val input = EditText(this@MainActivity)
+                input.setText(defaultValue ?: "")
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(message)
+                    .setView(input)
+                    .setPositiveButton("OK") { _, _ -> result.confirm(input.text.toString()) }
+                    .setNegativeButton("Cancelar") { _, _ -> result.cancel() }
+                    .setOnCancelListener { result.cancel() }
+                    .show()
+                return true
+            }
+        }
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (web.canGoBack()) web.goBack() else finish()
+            }
+        })
+
+        web.loadUrl("file:///android_asset/index.html")
+    }
+}

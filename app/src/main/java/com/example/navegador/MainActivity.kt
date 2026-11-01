@@ -51,7 +51,8 @@ class MainActivity : AppCompatActivity() {
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
         web.settings.mediaPlaybackRequiresUserGesture = false
-        web.webViewClient = WebViewClient()        web.webChromeClient = object : WebChromeClient() {
+        web.webViewClient = WebViewClient()
+        web.webChromeClient = object : WebChromeClient() {
 
             override fun onShowFileChooser(
                 view: WebView,
@@ -90,7 +91,8 @@ class MainActivity : AppCompatActivity() {
                     .setOnCancelListener { result.cancel() }
                     .show()
                 return true
-            }            override fun onJsPrompt(
+            }
+            override fun onJsPrompt(
                 view: WebView, url: String, message: String,
                 defaultValue: String?, result: JsPromptResult
             ): Boolean {

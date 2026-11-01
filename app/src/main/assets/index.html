@@ -18,7 +18,7 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"S
 #hello{opacity:.9;margin:2px 0 22px}
 form{width:100%;max-width:560px;display:flex;gap:8px}
 input[type=text],input[type=search],select{flex:1;min-width:0;background:var(--glass);border:1px solid var(--line);color:var(--fg);padding:14px 16px;border-radius:14px;font-size:16px;backdrop-filter:blur(10px)}
-input::placeholder{color:rgba(255,255,255,.6)}
+input::placeholder{color:color-mix(in srgb,var(--fg) 60%,transparent)}
 button{background:var(--glass);border:1px solid var(--line);color:var(--fg);border-radius:14px;padding:12px 14px;font-size:15px;cursor:pointer;backdrop-filter:blur(10px)}
 button.acc{background:var(--acc);border-color:transparent}
 #grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%;max-width:560px;margin-top:28px}
@@ -26,14 +26,15 @@ button.acc{background:var(--acc);border-color:transparent}
 .ico{width:58px;height:58px;border-radius:18px;background:var(--glass);border:1px solid var(--line);display:grid;place-items:center;font-size:24px;font-weight:600;backdrop-filter:blur(10px)}
 .x{position:absolute;top:-6px;right:6px;width:22px;height:22px;border-radius:50%;background:#e5484d;border:0;padding:0;font-size:13px;display:none}
 .edit .x{display:block}
+#hv{position:fixed;inset:0;z-index:12;background:var(--bg);display:none;flex-direction:column;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 14px}#hv.on{display:flex}#hl{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px}#incb{display:none;position:fixed;top:calc(64px + env(safe-area-inset-top,0px));left:10px;z-index:6;background:#4b2a7a;border-radius:20px;padding:6px 12px;font-size:13px}body.inc #incb{display:block}body.inc #bg{filter:grayscale(1) blur(var(--blur))}
 #res{width:100%;max-width:560px;margin-top:18px;display:flex;flex-direction:column;gap:8px}.card{background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:12px 14px;backdrop-filter:blur(10px);font-size:14px;white-space:pre-wrap;word-break:break-word}.card b{display:block;margin-bottom:4px}
 #logo{display:none}
-#dock{position:fixed;top:calc(60px + env(safe-area-inset-top,0px));right:12px;z-index:9;display:none;flex-direction:column;gap:6px;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:16px;min-width:220px}#dock.on{display:flex}#dock button{text-align:left}#gear{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:12px;z-index:9;width:44px;height:44px;border-radius:50%;font-size:22px;padding:0}
+#dock{max-height:75vh;overflow-y:auto;position:fixed;top:calc(60px + env(safe-area-inset-top,0px));right:12px;z-index:9;display:none;flex-direction:column;gap:6px;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:16px;min-width:220px}#dock.on{display:flex}#dock button{text-align:left;border:0;background:transparent;border-radius:10px;padding:11px 12px;font-size:15px}#dock button:active{background:rgba(255,255,255,.1)}#dock h4{margin:12px 12px 2px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.55;font-weight:600}#dock h4:first-child{margin-top:2px}.dots{display:flex;gap:12px;padding:8px 4px 4px;align-items:center}.dot{display:inline-block;width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,.35);cursor:pointer}.dot.on{border-color:#fff;box-shadow:0 0 0 2px var(--acc)}.cat{margin:20px 2px 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.6;font-weight:600}#gear{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:12px;z-index:9;width:44px;height:44px;border-radius:50%;font-size:22px;padding:0}
 #panel{position:fixed;inset:0;z-index:10;background:rgba(0,0,0,.55);display:none;align-items:flex-end}
 #panel.on{display:flex}
-#sheet{width:100%;max-height:85%;overflow-y:auto;background:var(--bg);border-radius:22px 22px 0 0;padding:18px;border-top:1px solid var(--line)}
-#sheet h3{margin:0 0 12px}
-.row{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;font-size:14px}
+#sheet{width:100%;height:100%;overflow-y:auto;background:var(--bg);padding:calc(16px + env(safe-area-inset-top,0px)) 16px 28px}
+#sheet h3{margin:0 0 16px;font-size:26px}
+.row{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;font-size:15px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:16px;padding:14px}.sw{flex-direction:row;justify-content:space-between;align-items:center}.sw input{width:26px;height:26px;accent-color:var(--acc)}
 .row .b{display:flex;gap:8px;flex-wrap:wrap}
 input[type=range]{width:100%}
 input[type=color]{width:60px;height:38px;border:0;background:none;padding:0}
@@ -55,63 +56,64 @@ iframe{flex:1;border:0;background:#fff;width:100%}
   <div id="hello"></div>
   <div id="logo"></div>
   <form id="f">
-    <input id="q" type="search" placeholder="Buscar o escribir dirección" autocomplete="off" autocapitalize="off">
+    <input id="q" list="dl" type="search" placeholder="Buscar o escribir dirección" autocomplete="off" autocapitalize="off">
     <button class="acc" type="submit">Ir</button>
   </form>
   <div id="grid"></div>
   <div id="res"></div>
+  <datalist id="dl"></datalist>
 </div>
 
-<div id="music"><button id="mp">⏸</button><button id="mn">⏭</button></div>
+<div id="music"><button id="mp">Pausa</button><button id="mn">Siguiente</button></div>
 
-<button id="gear" aria-label="Configuración">⚙️</button>
+<button id="gear" aria-label="Configuración"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
 <div id="dock">
-  <button id="bedit">✏️ Editar accesos</button>
-  <button id="badd">＋ Acceso</button>
-  <button id="bnote">📝 Nota</button>
-  <button id="bbg2">🖼 Cambiar fondo</button>
-  <button id="bmus2">🎵 Música</button>
-  <button id="bset">⚙️ Todos los ajustes</button>
+  <h4>Navegación</h4>
+  <button id="bhist2">Historial</button>
+  <button id="binc2">Modo incógnito</button>
+  <h4>Contenido</h4>
+  <button id="badd">Nuevo acceso</button>
+  <button id="bedit">Editar accesos</button>
+  <button id="bnote">Nueva nota</button>
+  <h4>Personalización</h4>
+  <button id="bbg2">Cambiar fondo</button>
+  <button id="bmus2">Música</button>
+  <button id="bset">Todos los ajustes</button>
+  <h4>Color del texto</h4>
+  <div class="dots"><i class="dot" data-c="#ffffff" style="background:#ffffff"></i><i class="dot" data-c="#ff5a5f" style="background:#ff5a5f"></i><i class="dot" data-c="#4da3ff" style="background:#4da3ff"></i><i class="dot" data-c="#ff7ac8" style="background:#ff7ac8"></i><i class="dot" data-c="#4ade80" style="background:#4ade80"></i><i class="dot" data-c="#fbbf24" style="background:#fbbf24"></i></div>
 </div>
 
 <div id="view">
   <div id="vbar">
     <button id="vback">← Inicio</button>
     <input id="vurl" type="text" readonly>
-    <button id="vout">↗</button>
+    <button id="vout">Abrir</button>
   </div>
-  <div id="hint">Algunas webs no se pueden mostrar aquí (bloquean marcos). Si sale en blanco, usa ↗ para abrirla en una pestaña nueva.</div>
+  <div id="hint">Algunas webs no se pueden mostrar aquí (bloquean marcos). Si sale en blanco, usa Abrir para abrirla en una pestaña nueva.</div>
   <iframe id="fr" referrerpolicy="no-referrer" allow="autoplay; fullscreen"></iframe>
 </div>
 
+<div id="hv"><div style="display:flex;gap:8px;margin-bottom:10px"><button id="hvx">← Cerrar</button><button id="hvc">Borrar todo</button></div><h3 style="margin:4px 0 10px">Historial</h3><div id="hl"></div></div>
+<div id="incb">Incógnito</div>
 <div id="panel">
   <div id="sheet">
     <h3>Ajustes</h3>
-    <div class="row">Tu nombre
-      <input id="sname" type="text" placeholder="Ej. Frank">
-    </div>
-    <div class="row">Título de la pestaña
-      <input id="sbrand" type="text" placeholder="Ej. Frank Search">
-    </div>
-    <div class="row" style="display:none">Logo (un emoji o letra)
-      <input id="slogo" type="text" maxlength="3" placeholder="🔎">
-    </div>
+    <h4 class="cat">General</h4>
+    <div class="row">Tu nombre<input id="sname" type="text" placeholder="Ej. Frank"></div>
+    <div class="row">Título de la pestaña<input id="sbrand" type="text" placeholder="Ej. Frank Search"></div>
+    <div class="row" style="display:none">Logo<input id="slogo" type="text" maxlength="3"></div>
+    <h4 class="cat">Apariencia</h4>
     <div class="row">Fondo (foto de tu galería)
-      <div class="b">
-        <button id="bbg">📷 Elegir foto</button>
-        <button id="bbgx">Quitar</button>
-      </div>
+      <div class="b"><button id="bbg">Elegir foto</button><button id="bbgx">Quitar</button></div>
       <input id="fbg" type="file" accept="image/*" hidden>
     </div>
-    <div class="row">Desenfoque del fondo
-      <input id="sblur" type="range" min="0" max="20" value="0">
-    </div>
-    <div class="row">Oscurecer fondo
-      <input id="sdark" type="range" min="0" max="80" value="28">
-    </div>
-    <div class="row">Color de acento
-      <input id="sacc" type="color" value="#5b8cff">
-    </div>
+    <div class="row">Desenfoque del fondo<input id="sblur" type="range" min="0" max="20" value="0"></div>
+    <div class="row">Oscurecer fondo<input id="sdark" type="range" min="0" max="80" value="28"></div>
+    <div class="row">Color de acento<input id="sacc" type="color" value="#5b8cff"></div>
+    <div class="row">Color del texto<div class="dots"><i class="dot" data-c="#ffffff" style="background:#ffffff"></i><i class="dot" data-c="#ff5a5f" style="background:#ff5a5f"></i><i class="dot" data-c="#4da3ff" style="background:#4da3ff"></i><i class="dot" data-c="#ff7ac8" style="background:#ff7ac8"></i><i class="dot" data-c="#4ade80" style="background:#4ade80"></i><i class="dot" data-c="#fbbf24" style="background:#fbbf24"></i></div></div>
+    <div class="row">Tamaño de la pantalla<input id="szoom" type="range" min="80" max="130" value="100"></div>
+    <div class="row sw">Mostrar reloj<input type="checkbox" id="sclk"></div>
+    <h4 class="cat">Búsqueda</h4>
     <div class="row">Buscador
       <select id="seng">
         <option value="https://www.google.com/search?q=">Buscador principal</option>
@@ -126,25 +128,28 @@ iframe{flex:1;border:0;background:#fff;width:100%}
         <option value="tab">En pestaña nueva</option>
       </select>
     </div>
-    <div class="row">Música (archivos de tu móvil; se pierde al cerrar)
-      <div class="b">
-        <button id="bmus">🎵 Elegir canciones</button>
-        <button id="bmusx">Detener</button>
-      </div>
+    <div class="row sw">Búsqueda segura<input type="checkbox" id="ssafe"></div>
+    <h4 class="cat">Privacidad</h4>
+    <div class="row sw">Modo incógnito<input type="checkbox" id="sinc"></div>
+    <div class="row">Historial
+      <div class="b"><button id="bhist">Ver historial</button><button id="bclh">Borrar historial</button></div>
+    </div>
+    <h4 class="cat">Música</h4>
+    <div class="row">Canciones de tu móvil (se pierden al cerrar)
+      <div class="b"><button id="bmus">Elegir canciones</button><button id="bmusx">Detener</button></div>
       <input id="fmus" type="file" accept="audio/*" multiple hidden>
       <input id="svol" type="range" min="0" max="100" value="60">
     </div>
-    <div class="b" style="display:flex;gap:8px">
+    <div class="b" style="display:flex;gap:8px;margin-top:18px">
       <button id="breset">Restablecer todo</button>
       <button class="acc" id="bclose">Listo</button>
     </div>
   </div>
 </div>
-
 <script>
 if(/wv\)/.test(navigator.userAgent)){window.open=function(u){location.href=u}}
 const $=id=>document.getElementById(id);
-const DEF={name:"",bg:"",blur:0,dark:28,acc:"#5b8cff",eng:"https://www.google.com/search?q=",mode:"tab",brand:"Mi Buscador",logo:"🔎",
+const DEF={name:"",bg:"",blur:0,dark:28,acc:"#5b8cff",eng:"https://www.google.com/search?q=",mode:"tab",brand:"Mi Buscador",logo:"🔎",hist:[],inc:false,safe:false,zoom:100,showclock:true,fg:"#ffffff",
  links:[],notes:[]};
 let S=JSON.parse(JSON.stringify(DEF));
 function load(){try{const r=localStorage.getItem("nav_s2");if(r)S=Object.assign(JSON.parse(JSON.stringify(DEF)),JSON.parse(r))}catch(e){}
@@ -153,13 +158,13 @@ function save(){try{localStorage.setItem("nav_s2",JSON.stringify(S))}catch(e){al
 
 function apply(){
   const r=document.documentElement.style;
-  r.setProperty("--acc",S.acc);r.setProperty("--blur",S.blur+"px");
+  r.setProperty("--acc",S.acc);r.setProperty("--fg",S.fg||"#ffffff");document.querySelectorAll(".dot").forEach(d=>d.classList.toggle("on",d.dataset.c===(S.fg||"#ffffff")));r.setProperty("--blur",S.blur+"px");
   $("bg").style.backgroundImage=S.bg?`url(${S.bg})`:"";
   $("scrim").style.background=`rgba(0,0,0,${S.dark/100})`;
   const h=new Date().getHours();
   const g=h<6?"Buenas noches":h<13?"Buenos días":h<20?"Buenas tardes":"Buenas noches";
   $("hello").textContent=g+(S.name?", "+S.name:"");
-  $("sname").value=S.name;$("sbrand").value=S.brand;$("slogo").value=S.logo;$("logo").textContent="";document.title=S.brand||"Inicio";$("sblur").value=S.blur;$("sdark").value=S.dark;
+  $("sname").value=S.name;$("sbrand").value=S.brand;$("slogo").value=S.logo;$("logo").textContent="";document.title=S.brand||"Inicio";document.body.classList.toggle("inc",!!S.inc);$("sinc").checked=!!S.inc;$("ssafe").checked=!!S.safe;$("sclk").checked=S.showclock!==false;$("clock").style.display=S.showclock!==false?"":"none";$("szoom").value=S.zoom;$("home").style.zoom=S.zoom/100;sug();$("sblur").value=S.blur;$("sdark").value=S.dark;
   $("sacc").value=S.acc;$("seng").value=S.eng;$("smode").value=S.mode;
 }
 function clock(){const d=new Date();$("clock").textContent=d.toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"})}
@@ -181,9 +186,10 @@ function fix(t){
   t=t.trim();if(!t)return null;
   if(/^https?:\/\//i.test(t))return t;
   if(t.includes(".")&&!t.includes(" "))return "https://"+t;
-  return S.eng+encodeURIComponent(t);
+  return S.eng+encodeURIComponent(t)+(S.safe&&S.eng.includes("google")?"&safe=active":S.safe&&S.eng.includes("bing")?"&adlt=strict":"");
 }
-function open_(u){
+function open_(u,label){
+  rec(u,label);
   if(S.mode==="tab"){window.open(u,"_blank","noopener");return}
   $("vurl").value=u;$("fr").src=u;$("view").classList.add("on");
 }
@@ -191,13 +197,13 @@ function local(t){
  const q=t.trim().toLowerCase(),r=$("res");r.innerHTML="";
  const card=(h,b)=>{const c=document.createElement("div");c.className="card";const e=document.createElement("b");e.textContent=h;c.append(e,b);r.append(c);return c};
  let n=0;
- S.links.forEach(l=>{if((l.n+" "+l.u).toLowerCase().includes(q)){n++;const c=card("🔗 "+l.n,l.u);c.onclick=()=>open_(l.u)}});
- S.notes.forEach((o,i)=>{if((o.t+" "+o.b).toLowerCase().includes(q)){n++;const c=card("📝 "+o.t,o.b);const x=document.createElement("button");x.textContent="Borrar";x.onclick=()=>{S.notes.splice(i,1);save();local(t)};c.append(document.createElement("br"),x)}});
+ S.links.forEach(l=>{if((l.n+" "+l.u).toLowerCase().includes(q)){n++;const c=card(l.n,l.u);c.onclick=()=>open_(l.u)}});
+ S.notes.forEach((o,i)=>{if((o.t+" "+o.b).toLowerCase().includes(q)){n++;const c=card(o.t,o.b);const x=document.createElement("button");x.textContent="Borrar";x.onclick=()=>{S.notes.splice(i,1);save();local(t)};c.append(document.createElement("br"),x)}});
  if(!n){const c=card("Sin resultados","No hay nada tuyo con ese texto.");const s=document.createElement("button");s.textContent="Guardar como nota";s.onclick=()=>{const b=prompt("Contenido de la nota");S.notes.push({t:t.trim(),b:b||""});save();local(t)};c.append(document.createElement("br"),s)}
 }
 $("f").onsubmit=e=>{e.preventDefault();const t=$("q").value;if(!t.trim()){local("");return}
  const url=/^https?:\/\//i.test(t.trim())||(t.includes(".")&&!t.includes(" "));
- if(url||S.eng!=="local"){open_(fix(t));$("q").value=""}else local(t)};
+ if(url||S.eng!=="local"){open_(fix(t),t.trim());$("q").value=""}else local(t)};
 $("vback").onclick=()=>{$("view").classList.remove("on");$("fr").src="about:blank"};
 $("vout").onclick=()=>window.open($("vurl").value,"_blank","noopener");
 
@@ -239,7 +245,7 @@ $("fbg").onchange=e=>{
 const au=new Audio();let pl=[],pi=0;
 au.volume=.6;
 au.onended=()=>next();
-function play(){if(!pl.length)return;au.src=pl[pi];au.play().catch(()=>{});$("music").classList.add("on");$("mp").textContent="⏸"}
+function play(){if(!pl.length)return;au.src=pl[pi];au.play().catch(()=>{});$("music").classList.add("on");$("mp").textContent="Pausa"}
 function next(){if(!pl.length)return;pi=(pi+1)%pl.length;play()}
 $("bmus").onclick=()=>$("fmus").click();
 $("fmus").onchange=e=>{
@@ -247,12 +253,39 @@ $("fmus").onchange=e=>{
   pl=[...e.target.files].map(f=>URL.createObjectURL(f));pi=0;play();
 };
 $("bmusx").onclick=()=>{au.pause();pl=[];$("music").classList.remove("on")};
-$("mp").onclick=()=>{if(au.paused){au.play();$("mp").textContent="⏸"}else{au.pause();$("mp").textContent="▶"}};
+$("mp").onclick=()=>{if(au.paused){au.play();$("mp").textContent="Pausa"}else{au.pause();$("mp").textContent="Reproducir"}};
 $("mn").onclick=next;
 $("svol").oninput=()=>au.volume=$("svol").value/100;
 
 $("breset").onclick=()=>{if(confirm("¿Borrar todos tus ajustes?")){S=JSON.parse(JSON.stringify(DEF));save();apply();grid()}};
 
+function rec(u,l){if(S.inc)return;S.hist=S.hist.filter(h=>h.u!==u);S.hist.unshift({u:u,l:l||u,t:Date.now()});S.hist=S.hist.slice(0,200);save();sug()}
+function sug(){const d=$("dl");d.innerHTML="";if(S.inc)return;S.hist.slice(0,8).forEach(h=>{if(h.l===h.u)return;const o=document.createElement("option");o.value=h.l;d.append(o)})}
+function drawHist(){
+ const h=$("hl");h.innerHTML="";
+ if(!S.hist.length){h.textContent="Sin historial.";return}
+ S.hist.forEach((x,i)=>{
+  const c=document.createElement("div");c.className="card";c.style.display="flex";c.style.gap="8px";c.style.alignItems="center";
+  const t=document.createElement("div");t.style.flex="1";t.style.minWidth="0";
+  const b=document.createElement("b");b.textContent=x.l;
+  const s=document.createElement("small");s.style.opacity=".65";s.textContent=new Date(x.t).toLocaleString("es")+" · "+x.u;
+  t.append(b,s);t.onclick=()=>{$("hv").classList.remove("on");open_(x.u,x.l)};
+  const d=document.createElement("button");d.textContent="Borrar";d.onclick=()=>{S.hist.splice(i,1);save();drawHist()};
+  c.append(t,d);h.append(c);
+ });
+}
+function showHist(){drawHist();$("hv").classList.add("on")}
+$("bhist").onclick=()=>{$("panel").classList.remove("on");showHist()};
+$("bhist2").onclick=showHist;
+$("hvx").onclick=()=>$("hv").classList.remove("on");
+$("hvc").onclick=()=>{if(confirm("¿Borrar todo el historial?")){S.hist=[];save();drawHist();sug()}};
+$("bclh").onclick=$("hvc").onclick;
+$("binc2").onclick=()=>{S.inc=!S.inc;save();apply()};
+$("sinc").onchange=()=>{S.inc=$("sinc").checked;save();apply()};
+$("ssafe").onchange=()=>{S.safe=$("ssafe").checked;save()};
+$("sclk").onchange=()=>{S.showclock=$("sclk").checked;save();apply()};
+$("szoom").oninput=()=>{S.zoom=+$("szoom").value;save();apply()};
+document.querySelectorAll(".dot").forEach(d=>d.onclick=()=>{S.fg=d.dataset.c;save();apply()});
 load();apply();grid();clock();
 </script>
 </body>

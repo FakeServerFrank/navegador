@@ -3,10 +3,13 @@ package com.example.navegador
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.DownloadManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.webkit.*
 import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -103,7 +106,7 @@ class MainActivity : AppCompatActivity() {
                 if (url.endsWith("android_asset/index.html")) {
                     view.evaluateJavascript(
                         "(function(){var b=document.createElement('button');" +
-                            "b.textContent='🧩 Extensiones';" +
+                            "b.textContent='Extensiones';" +
                             "b.onclick=function(){location.href='ext.html'};" +
                             "document.getElementById('dock').appendChild(b)})()",
                         null
@@ -111,6 +114,26 @@ class MainActivity : AppCompatActivity() {
                 } else if (url.startsWith("http")) {
                     runExt(view, url)
                 }
+            }
+        }
+
+        web.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
+            try {
+                val name = URLUtil.guessFileName(url, contentDisposition, mimeType)
+                val req = DownloadManager.Request(Uri.parse(url))
+                req.setMimeType(mimeType)
+                req.addRequestHeader("User-Agent", userAgent)
+                val cookie = CookieManager.getInstance().getCookie(url)
+                if (cookie != null) req.addRequestHeader("Cookie", cookie)
+                req.setNotificationVisibility(
+                    DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+                )
+                req.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, name)
+                val dm = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+                dm.enqueue(req)
+                Toast.makeText(this, "Descargando: " + name, Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(this, "No se pudo descargar", Toast.LENGTH_SHORT).show()
             }
         }
         web.webChromeClient = object : WebChromeClient() {
